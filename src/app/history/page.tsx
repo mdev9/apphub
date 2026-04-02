@@ -13,7 +13,7 @@ interface DiffEntry {
 interface HistoryEntry {
   id: string;
   timestamp: string;
-  type: "resource" | "article" | "translation";
+  type: string;
   title: string;
   summary: string;
   agentThoughts: string;
@@ -30,11 +30,6 @@ const TYPE_STYLES = {
     bg: "bg-purple-100 dark:bg-purple-900/40",
     text: "text-purple-700 dark:text-purple-300",
     label: "Article",
-  },
-  translation: {
-    bg: "bg-emerald-100 dark:bg-emerald-900/40",
-    text: "text-emerald-700 dark:text-emerald-300",
-    label: "Translation",
   },
 };
 
@@ -102,7 +97,11 @@ export default function HistoryPage() {
       ) : (
         <div className="space-y-2">
           {entries.map((entry) => {
-            const style = TYPE_STYLES[entry.type];
+            const style = TYPE_STYLES[entry.type as keyof typeof TYPE_STYLES] || {
+              bg: "bg-gray-100 dark:bg-gray-900/40",
+              text: "text-gray-700 dark:text-gray-300",
+              label: entry.type,
+            };
             const isExpanded = expandedId === entry.id;
 
             return (

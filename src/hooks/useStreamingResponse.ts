@@ -2,9 +2,12 @@
 
 import { useState, useCallback, useRef } from "react";
 
+export type Phase = "idle" | "researching" | "writing" | "done" | "error";
+
 interface StreamState {
   text: string;
   loading: boolean;
+  phase: Phase;
   error: string | null;
   done: boolean;
 }
@@ -13,6 +16,7 @@ export function useStreamingResponse() {
   const [state, setState] = useState<StreamState>({
     text: "",
     loading: false,
+    phase: "idle",
     error: null,
     done: false,
   });
@@ -23,7 +27,7 @@ export function useStreamingResponse() {
     const controller = new AbortController();
     abortRef.current = controller;
 
-    setState({ text: "", loading: true, error: null, done: false });
+    setState({ text: "", loading: true, phase: "researching", error: null, done: false });
 
     try {
       const res = await fetch("/api/ask", {
@@ -56,23 +60,30 @@ export function useStreamingResponse() {
 
           try {
             const event = JSON.parse(data);
-            if (event.type === "text") {
+            if (event.type === "status") {
+              setState((prev) => ({ ...prev, phase: event.status }));
+            } else if (event.type === "text") {
               accumulated += event.text;
-              setState((prev) => ({ ...prev, text: accumulated }));
+              setState((prev) => ({ ...prev, text: accumulated, phase: "writing" }));
+            } else if (event.type === "error") {
+              throw new Error(event.error);
             }
-          } catch {
-            // skip malformed events
+          } catch (e) {
+            if ((e as Error).message && (e as Error).message !== "Unexpected end of JSON input") {
+              throw e;
+            }
           }
         }
       }
 
-      setState((prev) => ({ ...prev, loading: false, done: true }));
+      setState((prev) => ({ ...prev, loading: false, phase: "done", done: true }));
       return accumulated;
     } catch (e) {
       if ((e as Error).name === "AbortError") return "";
       setState((prev) => ({
         ...prev,
         loading: false,
+        phase: "error",
         error: (e as Error).message,
       }));
       return "";
@@ -81,7 +92,7 @@ export function useStreamingResponse() {
 
   const reset = useCallback(() => {
     abortRef.current?.abort();
-    setState({ text: "", loading: false, error: null, done: false });
+    setState({ text: "", loading: false, phase: "idle", error: null, done: false });
   }, []);
 
   return { ...state, stream, reset };

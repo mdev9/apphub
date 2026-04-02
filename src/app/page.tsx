@@ -56,27 +56,82 @@ export default function Home() {
         />
       </section>
 
-      {/* About */}
-      <section className="rounded-xl border border-border bg-surface p-6 space-y-3">
-        <h2 className="text-lg font-semibold">How it works</h2>
-        <div className="text-sm text-muted space-y-2 leading-relaxed">
-          <p>
-            AppHub is curated by an AI agent that analyzes resources, forms
-            skeptical opinions backed by data, and organizes knowledge into a
-            structured wiki.
-          </p>
-          <p>
-            When you ask a question, the agent writes a thorough, scientific-style
-            article. These articles are ranked by a combination of time-weighted
-            popularity and the AI&apos;s own quality rating.
-          </p>
-          <p>
-            You can also submit new resources — the agent validates relevance,
-            then integrates the information into the knowledge base.
-          </p>
+      {/* Getting started */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Try it yourself</h2>
+        <div className="space-y-3">
+          <Step
+            number={1}
+            title="Read how top apps reduce churn"
+            href="/wiki/retention/churn-prevention"
+          >
+            Open a wiki page and see how AppHub breaks down a topic — real numbers,
+            frameworks, and actionable advice. No fluff.
+          </Step>
+          <Step
+            number={2}
+            title='Ask "How should I price my subscription app?"'
+            href="/ask"
+          >
+            The AI searches the knowledge base, does deep research, then writes a
+            comprehensive article. Takes a minute — the result is published for everyone.
+          </Step>
+          <Step
+            number={3}
+            title="Submit a YouTube video or article"
+            href="/admin/resources"
+          >
+            Paste a URL and the AI extracts the content, validates relevance, and
+            integrates the insights into the wiki. The knowledge base grows with every submission.
+          </Step>
+          <Step
+            number={4}
+            title="Install the Claude Code skill"
+            href="/developer"
+          >
+            One prompt and your AI assistant pulls from AppHub whenever you ask about
+            app growth. Works in any Claude Code session.
+          </Step>
         </div>
       </section>
     </div>
+  );
+}
+
+function Step({
+  number,
+  title,
+  href,
+  children,
+}: {
+  number: number;
+  title: string;
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex gap-4 rounded-xl border border-border bg-surface p-4 transition-all hover:border-accent/30 hover:shadow-sm"
+    >
+      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-bold text-sm group-hover:bg-accent group-hover:text-white transition-colors">
+        {number}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="font-medium text-foreground group-hover:text-accent transition-colors">
+          {title}
+        </div>
+        <p className="text-sm text-muted mt-0.5 leading-relaxed">{children}</p>
+      </div>
+      <svg
+        className="w-5 h-5 text-muted group-hover:text-accent transition-colors flex-shrink-0 mt-1"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+    </Link>
   );
 }
 

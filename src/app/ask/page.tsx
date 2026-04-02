@@ -7,7 +7,7 @@ import { MarkdownRenderer } from "@/components/shared/MarkdownRenderer";
 
 export default function AskPage() {
   const [question, setQuestion] = useState("");
-  const { text, loading, error, done, stream, reset } = useStreamingResponse();
+  const { text, loading, phase, error, done, stream, reset } = useStreamingResponse();
   const router = useRouter();
   const aiEnabled = process.env.NEXT_PUBLIC_AI_ENABLED !== "false";
 
@@ -72,6 +72,13 @@ export default function AskPage() {
             className="w-full rounded-xl border border-border bg-surface p-4 text-foreground placeholder:text-muted resize-none focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
             rows={4}
           />
+          <div className="text-xs text-muted leading-relaxed">
+            Articles generated here are published publicly for everyone to read.
+            For personal questions, use the{" "}
+            <a href="/developer" className="text-accent hover:underline">Claude Code skill</a>{" "}
+            or the{" "}
+            <a href="/developer" className="text-accent hover:underline">API</a> instead.
+          </div>
           <button
             type="submit"
             disabled={!question.trim()}
@@ -99,11 +106,29 @@ export default function AskPage() {
       {(text || loading) && (
         <div className="relative">
           {loading && (
-            <div className="sticky top-16 z-10 flex items-center gap-2 bg-accent-light border border-accent/20 rounded-lg px-4 py-2 mb-4">
-              <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-              <span className="text-sm text-accent font-medium">
-                Generating article...
-              </span>
+            <div className="sticky top-16 z-10 bg-accent-light border border-accent/20 rounded-lg px-4 py-3 mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                <span className="text-sm text-accent font-medium">
+                  {phase === "researching"
+                    ? "Researching..."
+                    : "Writing article..."}
+                </span>
+              </div>
+              {phase === "researching" && (
+                <p className="text-xs text-accent/70 mt-1 ml-4">
+                  Searching AppHub knowledge base, analyzing existing content, gathering data and frameworks
+                </p>
+              )}
+              {/* Phase steps */}
+              <div className="flex items-center gap-2 mt-2 ml-4">
+                <div className={`h-1 flex-1 rounded-full ${phase === "researching" ? "bg-accent animate-pulse" : "bg-accent"}`} />
+                <div className={`h-1 flex-1 rounded-full ${phase === "writing" ? "bg-accent animate-pulse" : phase === "researching" ? "bg-border" : "bg-accent"}`} />
+              </div>
+              <div className="flex justify-between mt-1 ml-4 text-[10px] text-accent/60">
+                <span>Research</span>
+                <span>Write</span>
+              </div>
             </div>
           )}
           {done && (

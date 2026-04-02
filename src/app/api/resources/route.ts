@@ -6,8 +6,9 @@ import { buildSearchIndex } from "@/lib/search";
 import { buildNavTree } from "@/lib/nav";
 import { logAction, captureBeforeState } from "@/lib/history";
 import { extractUrlContent } from "@/lib/url-extract";
+import { enqueue, isProxyAvailable } from "@/lib/queue";
 
-export const maxDuration = 300; // 5 minutes
+export const maxDuration = 300;
 
 function getClientIp(req: NextRequest): string {
   return (
@@ -75,6 +76,19 @@ export async function POST(req: NextRequest) {
       { detail: "Could not extract content from URL and no text provided" },
       { status: 400 }
     );
+  }
+
+  // If proxy is unavailable, queue for later processing
+  if (!(await isProxyAvailable())) {
+    const item = await enqueue("resource", {
+      content: submittedContent,
+      url: url || undefined,
+    });
+    return NextResponse.json({
+      message: "Claude proxy is offline. Your resource has been queued and will be processed automatically when the proxy is back.",
+      queued: true,
+      queueId: item.id,
+    });
   }
 
   // Step 1: Validate relevance

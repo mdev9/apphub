@@ -66,9 +66,9 @@ export function Sidebar() {
         </div>
 
         {/* Wiki sections */}
-        <div className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted">
+        <Link href="/wiki" className="block mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted hover:text-foreground transition-colors">
           Knowledge Base
-        </div>
+        </Link>
         {nav?.wiki.map((section) => (
           <div key={section.slug} className="mb-1">
             <button

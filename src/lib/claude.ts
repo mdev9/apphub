@@ -1,7 +1,25 @@
 const PROXY_URL = process.env.CLAUDE_PROXY_URL || "http://localhost:9100";
 
+// Cloudflare Access service token for authenticating with the remote proxy
+const CF_ACCESS_CLIENT_ID = process.env.CF_ACCESS_CLIENT_ID || "";
+const CF_ACCESS_CLIENT_SECRET = process.env.CF_ACCESS_CLIENT_SECRET || "";
+
 export function isAiEnabled(): boolean {
   return process.env.NEXT_PUBLIC_AI_ENABLED !== "false";
+}
+
+export function proxyHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "x-api-key": "x",
+    "anthropic-version": "2023-06-01",
+  };
+  // Add Cloudflare Access headers if configured (remote proxy)
+  if (CF_ACCESS_CLIENT_ID && CF_ACCESS_CLIENT_SECRET) {
+    headers["CF-Access-Client-Id"] = CF_ACCESS_CLIENT_ID;
+    headers["CF-Access-Client-Secret"] = CF_ACCESS_CLIENT_SECRET;
+  }
+  return headers;
 }
 
 interface AskOptions {
@@ -30,11 +48,7 @@ export async function ask(options: AskOptions): Promise<AskResponse> {
 
   const res = await fetch(`${PROXY_URL}/v1/messages`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": "x",
-      "anthropic-version": "2023-06-01",
-    },
+    headers: proxyHeaders(),
     body: JSON.stringify(body),
   });
 
@@ -122,11 +136,7 @@ export async function askStream(
 
   const res = await fetch(`${PROXY_URL}/v1/messages`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": "x",
-      "anthropic-version": "2023-06-01",
-    },
+    headers: proxyHeaders(),
     body: JSON.stringify(body),
   });
 

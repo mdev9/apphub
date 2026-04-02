@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Status = "idle" | "validating" | "integrating" | "success" | "error";
 
@@ -9,7 +9,33 @@ export default function ResourcesPage() {
   const [url, setUrl] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
+  const [queueCount, setQueueCount] = useState(0);
+  const [processing, setProcessing] = useState(false);
   const aiEnabled = process.env.NEXT_PUBLIC_AI_ENABLED !== "false";
+
+  // Check queue on load
+  useEffect(() => {
+    fetch("/api/queue")
+      .then((r) => r.json())
+      .then((d) => setQueueCount(d.pending + d.failed))
+      .catch(() => {});
+  }, []);
+
+  async function processQueue() {
+    setProcessing(true);
+    try {
+      const res = await fetch("/api/queue", { method: "POST" });
+      const data = await res.json();
+      setQueueCount(data.remaining || 0);
+      if (data.processed > 0) {
+        setStatus("success");
+        setMessage(`Processed ${data.processed} queued item(s)`);
+      }
+    } catch {
+    } finally {
+      setProcessing(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,6 +69,12 @@ export default function ResourcesPage() {
         return;
       }
 
+      if (data.queued) {
+        setStatus("success");
+        setMessage(data.message);
+        return;
+      }
+
       setStatus("success");
       setMessage(data.message || "Resource processed successfully");
     } catch {
@@ -70,6 +102,24 @@ export default function ResourcesPage() {
           Submit content or URLs to be analyzed and integrated into the knowledge base
         </p>
       </div>
+
+      {/* Queue banner */}
+      {queueCount > 0 && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-amber-700 dark:text-amber-400">
+              {queueCount} queued item{queueCount > 1 ? "s" : ""} waiting for proxy
+            </span>
+          </div>
+          <button
+            onClick={processQueue}
+            disabled={processing}
+            className="text-xs font-medium text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700 rounded-md px-3 py-1 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors disabled:opacity-50"
+          >
+            {processing ? "Processing..." : "Process now"}
+          </button>
+        </div>
+      )}
 
       {/* Progress indicator */}
       {(status === "validating" || status === "integrating") && (

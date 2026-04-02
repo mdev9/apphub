@@ -3,7 +3,7 @@ import { getJson, putJson, getObject } from "./r2";
 export interface HistoryEntry {
   id: string;
   timestamp: string;
-  type: "resource" | "article" | "translation";
+  type: "resource" | "article";
   title: string;
   summary: string;
   agentThoughts: string;
