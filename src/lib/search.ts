@@ -22,6 +22,7 @@ export async function buildSearchIndex(): Promise<SearchDoc[]> {
   ]);
 
   const docs: SearchDoc[] = [];
+  const catalog: CatalogEntry[] = [];
 
   const allFiles = [
     ...wikiFiles
@@ -61,10 +62,48 @@ export async function buildSearchIndex(): Promise<SearchDoc[]> {
       type: file.type,
       path,
     });
+
+    // Compact catalog record (wiki only) — precomputed so /api/catalog can serve
+    // a single cached file instead of reading every entry from R2 per request.
+    if (file.type === "wiki") {
+      catalog.push({
+        title: parsed.title,
+        description: parsed.description || "",
+        type: typeof fm.type === "string" ? fm.type : "entry",
+        topics,
+        claim,
+        numbers,
+        confidence: typeof fm.confidence === "string" ? fm.confidence : "",
+        source: typeof fm.source === "string" ? fm.source : "",
+        path: `/wiki/${slug}`,
+        apiPath: `/api/wiki/${slug}`,
+      });
+    }
   }
 
   await putJson("meta/search-index.json", docs);
+  await putJson("meta/catalog.json", catalog);
   return docs;
+}
+
+export interface CatalogEntry {
+  title: string;
+  description: string;
+  type: string;
+  topics: string[];
+  claim: string;
+  numbers: string[];
+  confidence: string;
+  source: string;
+  path: string;
+  apiPath: string;
+}
+
+export async function getCatalog(): Promise<CatalogEntry[]> {
+  const cached = await getJson<CatalogEntry[]>("meta/catalog.json");
+  if (cached) return cached;
+  await buildSearchIndex(); // builds catalog.json as a side effect
+  return (await getJson<CatalogEntry[]>("meta/catalog.json")) ?? [];
 }
 
 export async function getSearchIndex(): Promise<SearchDoc[]> {
