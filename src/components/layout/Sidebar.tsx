@@ -56,10 +56,9 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 text-sm">
-        {/* Quick links (read-only: submission + audit-log removed) */}
+        {/* Quick links. Ask + Articles are hidden for now (routes kept, to be
+            re-added once improved). */}
         <div className="mb-6">
-          <NavLink href="/ask" label="Ask a Question" icon="?" active={pathname === "/ask"} />
-          <NavLink href="/articles" label="Articles" icon="A" active={pathname.startsWith("/articles")} />
           <NavLink href="/developer" label="API & Skill" icon="/" active={pathname === "/developer"} />
         </div>
 

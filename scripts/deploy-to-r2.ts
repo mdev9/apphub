@@ -26,6 +26,7 @@ async function main() {
   // Import AFTER env is loaded so r2.ts initializes in R2 mode.
   const { listObjects, putObject, deleteObject } = await import("../src/lib/r2");
   const { buildSearchIndex } = await import("../src/lib/search");
+  const { buildNavTree } = await import("../src/lib/nav");
 
   // 1. Delete existing wiki/ content on R2.
   const existing = (await listObjects("wiki/")).map((o) => o.key);
@@ -53,9 +54,10 @@ async function main() {
   }
   console.log(`Uploaded ${uploaded} wiki objects to R2.`);
 
-  // 3. Rebuild the search index on R2.
+  // 3. Rebuild the search index + catalog on R2, then the nav tree.
   const docs = await buildSearchIndex();
-  console.log(`✓ Rebuilt search index on R2: ${docs.length} docs.`);
+  const nav = await buildNavTree();
+  console.log(`✓ Rebuilt search index (${docs.length} docs) + nav (${nav.wiki.length} topics) on R2.`);
 }
 
 main().catch((e) => {

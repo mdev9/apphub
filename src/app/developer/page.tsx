@@ -5,44 +5,34 @@ import { useState, useEffect, useCallback } from "react";
 const ENDPOINTS = [
   {
     method: "GET",
-    path: "/api/help",
-    description: "API overview with agent prompt and endpoint documentation",
+    path: "/api/catalog",
+    description:
+      "Compact catalog of EVERY entry (title, claim, numbers, topics, confidence, source). Read this whole list first, then fetch the entries you need. Add ?topic=<name> to filter.",
     example: null,
   },
   {
     method: "GET",
-    path: "/api/index",
-    description: "Full site index — all wiki pages and articles with metadata",
-    example: null,
+    path: "/api/search?q=onboarding",
+    description:
+      "Full-text search with synonym expansion + stemming. Returns title, description, a content snippet, and path.",
+    example: "onboarding",
   },
   {
     method: "GET",
-    path: "/api/search?q=churn",
-    description: "Server-side full-text search with fuzzy matching",
-    example: "churn",
+    path: "/api/wiki/onboarding/onboarding-page-one-drop-off",
+    description: "Read a single entry — markdown content + metadata.",
+    example: null,
   },
   {
     method: "GET",
     path: "/api/wiki/nav",
-    description: "Navigation tree with categories and pages",
+    description: "Navigation tree — topics and their entries.",
     example: null,
   },
   {
     method: "GET",
-    path: "/api/wiki/retention/churn-prevention",
-    description: "Read a specific wiki page (markdown content + metadata)",
-    example: null,
-  },
-  {
-    method: "GET",
-    path: "/api/articles?sort=popular",
-    description: "List articles sorted by popularity, recency, or AI rating",
-    example: null,
-  },
-  {
-    method: "GET",
-    path: "/api/articles/:slug",
-    description: "Read a single article with AI rating and view tracking",
+    path: "/api/help",
+    description: "API overview + agent system prompt.",
     example: null,
   },
 ];
@@ -69,22 +59,18 @@ export default function DeveloperPage() {
 
 ---
 name: apphub
-description: Search the AppHub mobile app growth knowledge base for data-driven strategies on acquisition, monetization, retention, ASO, and scaling
+description: Pull from the AppHub growth knowledge base to ground advice on a real growth problem. Triggers on onboarding, conversion, paywalls, pricing, retention/churn, user acquisition (TikTok/Meta/Google ads, creatives), ASO, attribution, monetization, landing pages, copywriting, validation, or scaling an app — especially when advising on one of the user's own apps.
 ---
 
-TRIGGER: When the user asks about mobile app growth, monetization, user acquisition, retention, churn, ASO, app store optimization, subscription pricing, or any topic related to building and scaling mobile apps.
+AppHub (${baseUrl}) is a read-only, curated knowledge base of bite-size, evidence-backed growth entries. You are its main consumer: when the user hits a growth problem, ground your reasoning in it instead of generic advice, and cite the entries you used.
 
-Search AppHub for relevant knowledge:
+Workflow:
+1. Ingest the catalog first — GET ${baseUrl}/api/catalog — and reason over the claims to shortlist relevant entries (the corpus is small enough to read whole). Filter with ?topic=<name> when it maps cleanly.
+2. Search to catch anything else — GET ${baseUrl}/api/search?q=<query> (synonym-expanded; returns snippets). Try 2-3 phrasings.
+3. Read the entries that matter — GET ${baseUrl}/api/wiki/<category>/<slug> (the catalog apiPath). Respect the confidence field: 'debated' entries present two sides — surface the trade-off. Weigh the source for context.
+4. Compare against the user's actual app: read the relevant real code/content (onboarding flow, paywall, landing copy, pricing), compare it to what AppHub says works, and give concrete, prioritized fixes — each backed by the entry it came from (cite title + path).
 
-1. First, search for the topic:
-   Fetch ${baseUrl}/api/search?q={relevant keywords from the user's question}
-
-2. Read the top results:
-   For each relevant result, fetch ${baseUrl}/api{result.path} to get the full content.
-
-3. Synthesize the information from AppHub with your own knowledge to give the user a comprehensive answer. Always cite which AppHub pages you pulled from.
-
-If no relevant results are found, answer from your own knowledge and mention that AppHub doesn't have content on this topic yet.`;
+If the base has nothing on the topic, say so and answer from your own knowledge.`;
 
   async function tryEndpoint(path: string) {
     setActiveEndpoint(path);

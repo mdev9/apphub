@@ -1,4 +1,5 @@
-import { listObjects, getJson, putJson } from "./r2";
+import { listObjects, getObject, getJson, putJson } from "./r2";
+import { parseMarkdown } from "./markdown";
 
 export interface NavItem {
   title: string;
@@ -41,11 +42,13 @@ export async function buildNavTree(): Promise<NavTree> {
       const cat = parts[1];
       const slug = parts[2].replace(/\.md$/, "");
       if (!categories.has(cat)) categories.set(cat, { pages: [] });
+      // Use the entry's real frontmatter title (not the kebab slug).
+      const raw = await getObject(file.key);
+      const title = raw
+        ? parseMarkdown(raw).title
+        : slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
       categories.get(cat)!.pages.push({
-        title: slug
-          .split("-")
-          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-          .join(" "),
+        title,
         slug,
         path: `/wiki/${cat}/${slug}`,
       });
