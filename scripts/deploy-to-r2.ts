@@ -28,12 +28,7 @@ async function main() {
   const { buildSearchIndex } = await import("../src/lib/search");
   const { buildNavTree } = await import("../src/lib/nav");
 
-  // 1. Delete existing wiki/ content on R2.
-  const existing = (await listObjects("wiki/")).map((o) => o.key);
-  console.log(`Deleting ${existing.length} existing wiki/ objects on R2…`);
-  for (const key of existing) await deleteObject(key);
-
-  // 2. Upload local data/wiki/** .
+  // 1. Gather local data/wiki/** first.
   const LOCAL = path.resolve(process.cwd(), "data");
   const files: string[] = [];
   (function walk(d: string) {
@@ -43,6 +38,25 @@ async function main() {
       else files.push(full);
     }
   })(path.join(LOCAL, "wiki"));
+
+  const localMd = files.filter((f) => f.endsWith(".md")).length;
+  const existing = (await listObjects("wiki/")).map((o) => o.key);
+  const existingMd = existing.filter((k) => k.endsWith(".md")).length;
+
+  // Safety: this is a destructive full rebuild. If the local mirror has far fewer
+  // entries than R2, it's probably stale/incomplete — refuse so we don't nuke the
+  // live base. (Use scripts/push-entries.ts for incremental updates.)
+  const force = process.argv.includes("--force");
+  if (!force && existingMd > 0 && localMd < existingMd * 0.8) {
+    throw new Error(
+      `Refusing: local mirror has ${localMd} entries but R2 has ${existingMd}. ` +
+        `Local looks stale — re-pull the base, use push-entries.ts for incremental updates, or pass --force.`
+    );
+  }
+
+  // 2. Delete existing wiki/ content, then re-upload.
+  console.log(`Deleting ${existing.length} existing wiki/ objects on R2…`);
+  for (const key of existing) await deleteObject(key);
 
   let uploaded = 0;
   for (const full of files) {
