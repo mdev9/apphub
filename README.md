@@ -1,193 +1,117 @@
 # AppHub
 
-An open knowledge base for mobile app growth, curated by an AI agent.
+A read-only, **skill-first** knowledge base for mobile-app & SaaS growth.
 
-Submit a resource (article, YouTube video, notes) and an AI agent analyzes it, validates relevance, decides where it fits in the wiki, and writes a complete page. Ask a question and it generates a data-driven article. Everything is stored as markdown, browsable with search, and exposed through a JSON API.
+AppHub holds ~268 **bite-size, evidence-backed entries** — each a single claim with verbatim numbers, a confidence level, and its source — grouped by topic (onboarding, paywalls, pricing, retention, ads, ASO, attribution, …). It's exposed as a JSON API and a Claude Code skill so an **AI assistant pulls from it automatically** when you hit a growth problem, grounding its advice in real data instead of generic tips.
 
-## How it works
+Live: **[apphub.marijn.fr](https://apphub.marijn.fr)**
+
+## The skill is the product
+
+The primary consumer isn't a human browsing — it's your AI assistant:
 
 ```
-You submit a resource (text, URL, YouTube link)
-        |
-        v
-   AI validates relevance
-        |
-        v
-   AI plans: where does this go? what category? what key points?
-        |
-        v
-   AI writes a full wiki page with frontmatter
-        |
-        v
-   Saved to storage (R2 or local), search index rebuilt, sidebar updated
+You ask your assistant a growth question
+        │
+        ▼
+  GET /api/catalog      → ingest the whole catalog, reason over the claims
+        │
+        ▼
+  GET /api/search?q=…   → synonym-expanded search for anything else
+        │
+        ▼
+  GET /api/wiki/<cat>/<slug>   → read the entries that matter
+        │
+        ▼
+  Read your app's real code (onboarding, paywall, pricing, …)
+        │
+        ▼
+  Prioritized, cited fixes — each backed by a sourced entry
 ```
 
-The agent is skeptical and data-driven. It rejects irrelevant submissions, forms its own opinions, and backs claims with evidence. When new information contradicts existing pages, it updates them.
+The web UI ([/library](https://apphub.marijn.fr/library)) is a clean way for humans to browse the same content; install instructions live at [/connect-your-ai-agent](https://apphub.marijn.fr/connect-your-ai-agent).
 
-### What the AI does
+## Content model
 
-- **Validates** submitted content for relevance to mobile app growth
-- **Plans** where new information should go (create new page or update existing)
-- **Writes** complete wiki pages with structured markdown and YAML frontmatter
-- **Rates** generated articles on a 1-10 quality scale
-- **Extracts** content from URLs (web pages) and YouTube videos (transcript)
-- **Queues** submissions when the proxy is offline and processes them later
+Two types, both markdown with YAML frontmatter (full spec: [`docs/CONTENT-FORMAT.md`](docs/CONTENT-FORMAT.md)):
 
-### What happens without AI
+- **Entry** — one atomic insight. `claim`, `numbers`, `topics`, `confidence` (`high` / `medium` / `debated`), `source`. A few hundred words; `Apply when` / `Caveat`.
+- **Guide** — the rare long-form keeper (e.g. the RevenueCat SOSA 2026 benchmarks).
 
-The wiki, search, articles, and API all work. You just can't submit new resources, generate Q&A articles, or process the queue. The site is fully functional as a static knowledge base.
+Contradictions between sources are never silent — they're tagged `confidence: debated` with both sides in the caveat. Sources are cited explicitly (App Society calls, RevenueCat, Marc Lou, named guides).
 
-## Quick start
-
-```bash
-git clone https://github.com/mdev9/apphub.git
-cd apphub
-npm install
-npx tsx scripts/seed.ts   # populate starter content
-npm run dev               # http://localhost:3000
-```
-
-That's it. This runs with local filesystem storage (`./data/`) and no AI. Good enough to browse, search, and contribute to the UI.
-
-## Full setup (with AI)
-
-The AI features require a Claude-compatible proxy running on port 9100 that exposes the Anthropic Messages API (`POST /v1/messages`).
-
-### 1. Claude proxy
-
-AppHub calls `http://localhost:9100/v1/messages` with the standard Anthropic API format. Any proxy that accepts this works. We use [Meridian](https://github.com/rynfar/opencode-claude-max-proxy), which proxies Claude Code's authentication to expose an API endpoint.
-
-```bash
-# Clone and start the proxy (requires Claude Code installed and authenticated)
-cd ~/Documents/claude-proxy
-docker compose up -d
-
-# Verify
-curl http://localhost:9100/health
-```
-
-### 2. Cloud storage (optional, for production)
-
-By default, content is stored in `./data/`. For production, use Cloudflare R2 (free tier: 10GB, 10M reads/month).
-
-Create `.env.local`:
-
-```env
-R2_ACCOUNT_ID=your_account_id
-R2_ACCESS_KEY_ID=your_access_key
-R2_SECRET_ACCESS_KEY=your_secret_key
-R2_BUCKET_NAME=apphub-content
-R2_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
-CLAUDE_PROXY_URL=http://localhost:9100
-NEXT_PUBLIC_AI_ENABLED=true
-```
-
-Then seed R2: `npx tsx scripts/seed.ts`
-
-If `R2_ENDPOINT` is not set, everything falls back to local filesystem automatically.
-
-### 3. Run
-
-```bash
-npm run dev
-```
-
-| Page | What it does |
-|---|---|
-| `/` | Landing page |
-| `/wiki` | Browse knowledge base by category |
-| `/wiki/:category/:slug` | Read a wiki page |
-| `/articles` | Browse AI-generated articles (ranked by popularity + AI rating) |
-| `/ask` | Ask a question, get a streaming AI article |
-| `/admin/resources` | Submit resources (text, URLs, YouTube) |
-| `/history` | Agent action log with GitHub-style diffs |
-| `/developer` | API docs, Claude Code skill installer |
+### Where the content comes from
+- **App Society** — a weekly French indie-app mastermind (12 calls distilled). Fed automatically: the `app-society-sync` skill turns each new call into entries and pushes them here.
+- **Marc Lou** viral-product principles, **RevenueCat State of Subscription Apps 2026**, and a few sourced practitioner playbooks.
 
 ## API
 
-All content is available as JSON. See `/api/help` for the full agent-friendly documentation.
+All content is JSON. Start at `/api/catalog`.
 
 ```bash
-GET /api/help                        # API overview + agent system prompt
-GET /api/index                       # Full site index
-GET /api/search?q=churn              # Full-text search
-GET /api/wiki/nav                    # Navigation tree
-GET /api/wiki/retention/churn-prevention  # Read a wiki page
-GET /api/articles?sort=popular       # List articles
-GET /api/articles/:slug              # Read an article
-GET /api/queue                       # Queue status
-POST /api/queue                      # Process queued items
+GET /api/catalog                 # compact catalog of EVERY entry (read this first); ?topic=<name> to filter
+GET /api/search?q=onboarding     # synonym-expanded + stemmed full-text search, with snippets
+GET /api/wiki/<category>/<slug>  # read one entry (markdown + metadata)
+GET /api/wiki/nav                # topic tree
+GET /api/og/<category>/<slug>    # per-entry Open Graph image
+GET /api/help                    # API overview + agent system prompt
 ```
 
-### Claude Code skill
+`/api/catalog` is served from a precomputed `meta/catalog.json` (a single read — reading every entry per request times out on serverless at this size).
 
-AppHub ships as a Claude Code skill. Install it so Claude automatically pulls from the knowledge base when you ask about app growth:
+## Read-only
 
-```bash
-mkdir -p ~/.claude/skills/apphub
-# Then paste the skill content from /developer page
-```
-
-Or just copy the install prompt from the `/developer` page and paste it into Claude Code.
+AppHub is read-only in production. The legacy submission / Q&A-generation endpoints (`/api/resources`, `/api/queue`, `/api/ask`, article creation) return **403** unless `ENABLE_WRITES=true`. Content is curated offline and deployed via the scripts below.
 
 ## Architecture
 
 ```
+Next.js 16 (App Router) · Cloudflare R2 (storage) · Vercel (hosting)
+
 src/
   app/
+    library/            # browse all entries (one /api/catalog call) + entry/topic pages
+    connect-your-ai-agent/  # skill install + API docs
     api/
-      ask/          # Q&A streaming → Claude proxy → SSE to client
-      articles/     # CRUD + view tracking + popularity ranking
-      resources/    # Validate → plan → generate → save pipeline
-      search/       # Server-side search (MiniSearch) + client index
-      wiki/         # Read markdown from storage
-      queue/        # Offline queue management
-      help/         # Agent-friendly API docs
-      index/        # Full site index
-      history/      # Action audit log
+      catalog/          # cached compact catalog
+      search/           # MiniSearch + synonyms + stemming
+      wiki/[...slug]/    # read an entry
+      wiki/nav/          # topic tree
+      og/[...slug]/      # per-entry OG image
+      help/ index/       # API docs / full index
   lib/
-    r2.ts           # Storage abstraction (R2 or local filesystem)
-    claude.ts       # Anthropic API client + system prompts
-    queue.ts        # Offline queue (enqueue when proxy down)
-    popularity.ts   # Time-weighted decay + AI rating scoring
-    rate-limit.ts   # IP-based rate limiting (bypassed locally)
-    url-extract.ts  # YouTube transcript + web content extraction
-    history.ts      # Action logging with diffs
-    search.ts       # MiniSearch index builder
-    nav.ts          # Sidebar navigation tree from storage
-    markdown.ts     # gray-matter frontmatter parsing
+    r2.ts               # storage (R2, or local ./data fallback)
+    search.ts           # index + catalog builder
+    nav.ts              # topic tree builder
+    synonyms.ts         # query expansion
+    topics.ts           # topic labels
+    markdown.ts         # frontmatter parsing
+
+Storage layout (R2 / ./data):
+  wiki/<topic>/<id>.md       entries & guides
+  wiki/<topic>/_meta.json    topic title/order
+  meta/{catalog,search-index,nav-tree}.json   precomputed, rebuilt on deploy
 ```
 
-### Resource submission pipeline
+The web route is `/library` but the storage prefix and data API stay `wiki/` / `/api/wiki` (`/wiki` + `/developer` 308-redirect to the new routes).
 
-```
-POST /api/resources
-  1. Extract URL content (YouTube transcript or web scrape)
-  2. Check: proxy available? No → enqueue, return 200 with queued status
-  3. AI call: validate relevance (small JSON response)
-  4. AI call: plan integration (path, title, tags, key points)
-  5. AI call: generate wiki page (plain markdown)
-  6. Save to storage, rebuild search index + nav tree
-  7. Log to history with before/after diff
-```
-
-### Popularity ranking
-
-Articles are ranked by: `score = 0.6 * normalize(decayedViews) + 0.4 * (aiRating / 10)`
-
-Views decay with a 7-day half-life. Recent high-quality content surfaces first.
-
-## Contributing
+## Scripts
 
 ```bash
-git clone https://github.com/mdev9/apphub.git
-cd apphub
-npm install
-npx tsx scripts/seed.ts
-npm run dev
+npx tsx scripts/push-entries.ts    # incremental: upsert data/_incoming/** to R2, rebuild from R2 (safe, never deletes)
+npx tsx scripts/deploy-to-r2.ts    # full rebuild from local data/wiki/** (refuses if the mirror looks stale; --force to override)
+npx tsx scripts/reindex-local.ts   # rebuild index/catalog/nav locally (./data)
+npx tsx scripts/ls-bucket.ts       # inspect what's in the bucket (--keys, or pass a key to dump it)
 ```
 
-No cloud accounts needed. Everything runs locally. AI features are optional.
+## Local development
+
+```bash
+npm install
+R2_ENDPOINT= NEXT_PUBLIC_AI_ENABLED=false npm run dev   # uses local ./data, no R2/AI
+```
+
+Set `R2_*` in `.env.local` to target the real bucket. The site is fully functional without AI — browse, search, and the API all work statically.
 
 ## License
 
