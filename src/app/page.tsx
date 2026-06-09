@@ -53,7 +53,7 @@ export default function Home() {
           <p className="text-muted mt-1">Connect once. Then your assistant just knows.</p>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="flex flex-col gap-3 md:flex-row md:items-stretch">
           <HowStep
             n={1}
             title="Connect once"
@@ -63,6 +63,7 @@ export default function Home() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M13 10V3L4 14h7v7l9-11h-7z" />
             }
           />
+          <Arrow />
           <HowStep
             n={2}
             title="It pulls automatically"
@@ -72,6 +73,7 @@ export default function Home() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" />
             }
           />
+          <Arrow />
           <HowStep
             n={3}
             title="Cited, grounded fixes"
@@ -157,6 +159,21 @@ function Line({
   );
 }
 
+function Arrow() {
+  return (
+    <div className="flex items-center justify-center md:px-1">
+      <svg
+        className="h-6 w-6 rotate-90 text-accent/50 animate-nudge md:rotate-0"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5-5 5M6 12h12" />
+      </svg>
+    </div>
+  );
+}
+
 function HowStep({
   n,
   title,
@@ -173,17 +190,21 @@ function HowStep({
   return (
     <Link
       href={href}
-      className="group relative overflow-hidden rounded-2xl border border-border bg-surface p-6 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"
+      className="group relative flex-1 overflow-hidden rounded-2xl border border-border bg-surface p-6 transition-all hover:-translate-y-1 hover:border-accent/40 hover:shadow-lg"
     >
       {/* top accent that reveals on hover */}
       <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-accent to-[#7c9dff] opacity-0 transition-opacity group-hover:opacity-100" />
-      <div className="mb-4 flex items-center justify-between">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent transition-colors group-hover:bg-accent group-hover:text-white">
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            {icon}
-          </svg>
-        </span>
-        <span className="bg-gradient-to-br from-[#2563eb] to-[#9db8ff] bg-clip-text font-mono text-3xl font-bold leading-none text-transparent opacity-40">
+      <div className="mb-5 flex items-start justify-between">
+        {/* glowing gradient orb */}
+        <div className="relative animate-float">
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-accent to-[#7c9dff] opacity-30 blur-lg transition-opacity group-hover:opacity-70" />
+          <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-[#7c9dff] text-white shadow-lg shadow-accent/20">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {icon}
+            </svg>
+          </div>
+        </div>
+        <span className="bg-gradient-to-br from-[#2563eb] to-[#9db8ff] bg-clip-text font-mono text-5xl font-bold leading-none text-transparent opacity-25 transition-opacity group-hover:opacity-50">
           {n}
         </span>
       </div>

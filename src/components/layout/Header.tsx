@@ -57,14 +57,11 @@ export function Header({ brand = false }: { brand?: boolean }) {
             </span>
           </Link>
         ) : (
-        /* Breadcrumbs */
+        /* Breadcrumbs (no "Home" — the AppHub logo already links home) */
         <nav className="flex items-center gap-1.5 text-sm text-muted">
-          <a href="/" className="hover:text-foreground transition-colors">
-            Home
-          </a>
           {crumbs.map((crumb, i) => (
             <span key={crumb.href} className="flex items-center gap-1.5">
-              <span className="text-border">/</span>
+              {i > 0 && <span className="text-border">/</span>}
               {i === crumbs.length - 1 ? (
                 <span className="text-foreground font-medium">
                   {crumb.label}

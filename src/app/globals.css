@@ -89,3 +89,20 @@ body {
   backdrop-filter: blur(4px);
   background: rgba(0, 0, 0, 0.4);
 }
+
+/* "How it works" flow accents */
+@keyframes nudge-x {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+.animate-nudge { animation: nudge-x 1.8s ease-in-out infinite; }
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.animate-float { animation: float-y 4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-nudge, .animate-float, .animate-ping, .animate-pulse { animation: none; }
+}
