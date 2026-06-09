@@ -15,10 +15,15 @@ export async function GET(
   }
 
   const parsed = parseMarkdown(raw);
+  const fm = parsed.frontmatter as Record<string, unknown>;
   return NextResponse.json({
     title: parsed.title,
     description: parsed.description,
     content: parsed.content,
     tags: parsed.tags,
+    type: typeof fm.type === "string" ? fm.type : "entry",
+    topics: Array.isArray(fm.topics) ? (fm.topics as string[]) : [],
+    confidence: typeof fm.confidence === "string" ? fm.confidence : "",
+    source: typeof fm.source === "string" ? fm.source : "",
   });
 }

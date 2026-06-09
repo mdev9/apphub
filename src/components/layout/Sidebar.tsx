@@ -59,12 +59,13 @@ export function Sidebar() {
         {/* Quick links. Ask + Articles are hidden for now (routes kept, to be
             re-added once improved). */}
         <div className="mb-6">
+          <NavLink href="/wiki" label="Knowledge Base" icon="≡" active={pathname === "/wiki"} />
           <NavLink href="/developer" label="API & Skill" icon="/" active={pathname === "/developer"} />
         </div>
 
         {/* Wiki sections */}
         <Link href="/wiki" className="block mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted hover:text-foreground transition-colors">
-          Knowledge Base
+          Topics
         </Link>
         {nav?.wiki.map((section) => (
           <div key={section.slug} className="mb-1">

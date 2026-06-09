@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { topicLabel, primaryTopic } from "@/lib/topics";
+import { EntryCard } from "@/components/shared/EntryCard";
 
 interface CatalogEntry {
   title: string;
@@ -21,12 +22,6 @@ interface Catalog {
   topics: string[];
   entries: CatalogEntry[];
 }
-
-const CONFIDENCE_STYLE: Record<string, string> = {
-  high: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400",
-  medium: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400",
-  debated: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400",
-};
 
 export default function WikiIndex() {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
@@ -138,32 +133,7 @@ export default function WikiIndex() {
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {g.entries.map((e) => (
-                <Link
-                  key={e.path}
-                  href={e.path}
-                  className="group rounded-xl border border-border bg-surface p-4 transition-all hover:border-accent/30 hover:shadow-sm"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-medium text-foreground group-hover:text-accent transition-colors leading-snug">
-                      {e.title}
-                    </h3>
-                    {e.confidence && (
-                      <span
-                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                          CONFIDENCE_STYLE[e.confidence] ?? "bg-surface text-muted"
-                        }`}
-                      >
-                        {e.confidence}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted mt-1 line-clamp-2">
-                    {e.description || e.claim}
-                  </p>
-                  {e.source && (
-                    <p className="text-[11px] text-muted/70 mt-2 truncate">{e.source}</p>
-                  )}
-                </Link>
+                <EntryCard key={e.path} entry={e} />
               ))}
             </div>
           </section>

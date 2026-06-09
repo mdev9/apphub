@@ -1,65 +1,58 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { MarkdownRenderer } from "@/components/shared/MarkdownRenderer";
+import { EntryCard, ConfidenceBadge, type EntrySummary } from "@/components/shared/EntryCard";
+import { topicLabel, primaryTopic } from "@/lib/topics";
 
 interface WikiData {
   title: string;
   description?: string;
   content: string;
   tags?: string[];
+  confidence?: string;
+  source?: string;
 }
 
-interface NavItem {
-  title: string;
-  slug: string;
-  path: string;
-  children?: NavItem[];
-}
-
-interface PagePreview {
-  title: string;
-  description?: string;
-  tags?: string[];
+interface CatalogEntry extends EntrySummary {
+  topics: string[];
 }
 
 type ViewMode = "loading" | "page" | "category" | "not-found";
+
+function BackToWiki() {
+  return (
+    <Link
+      href="/wiki"
+      className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-accent transition-colors mb-4"
+    >
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+      </svg>
+      Knowledge Base
+    </Link>
+  );
+}
 
 export default function WikiPage() {
   const params = useParams();
   const slug = (params.slug as string[])?.join("/") ?? "";
   const [mode, setMode] = useState<ViewMode>("loading");
-
-  // Page state
   const [data, setData] = useState<WikiData | null>(null);
-  // id -> {path,title} map so [[wiki-links]] in entry bodies become real links
-  const [linkMap, setLinkMap] = useState<Record<string, { path: string; title: string }>>({});
+  const [catalog, setCatalog] = useState<CatalogEntry[] | null>(null);
 
-  // Category state
-  const [category, setCategory] = useState<NavItem | null>(null);
-  const [previews, setPreviews] = useState<Record<string, PagePreview>>({});
-
-  // Build the [[id]] → entry lookup once from the catalog.
+  // Load the catalog once — powers [[wiki-links]] resolution and category views.
   useEffect(() => {
     fetch("/api/catalog")
       .then((r) => r.json())
-      .then((c: { entries?: { path: string; title: string }[] }) => {
-        const m: Record<string, { path: string; title: string }> = {};
-        for (const e of c.entries ?? []) {
-          const id = e.path.split("/").pop();
-          if (id) m[id] = { path: e.path, title: e.title };
-        }
-        setLinkMap(m);
-      })
-      .catch(() => {});
+      .then((c: { entries?: CatalogEntry[] }) => setCatalog(c.entries ?? []))
+      .catch(() => setCatalog([]));
   }, []);
 
   useEffect(() => {
     setMode("loading");
-
-    // Try fetching as a page first
     fetch(`/api/wiki/${slug}`)
       .then((r) => {
         if (r.ok) return r.json();
@@ -69,157 +62,106 @@ export default function WikiPage() {
         setData(d);
         setMode("page");
       })
-      .catch(() => {
-        // Not a page — try as a category
-        fetch("/api/wiki/nav")
-          .then((r) => r.json())
-          .then((nav) => {
-            const cat = nav.wiki.find(
-              (s: NavItem) => s.slug === slug || s.path === `/wiki/${slug}`
-            );
-            if (cat) {
-              setCategory(cat);
-              setMode("category");
-              // Fetch previews for child pages
-              if (cat.children) {
-                Promise.all(
-                  cat.children.map((c: NavItem) =>
-                    fetch(`/api${c.path}`)
-                      .then((r) => (r.ok ? r.json() : null))
-                      .then((data) => (data ? { path: c.path, data } : null))
-                      .catch(() => null)
-                  )
-                ).then((results) => {
-                  const map: Record<string, PagePreview> = {};
-                  for (const r of results) {
-                    if (r) map[r.path] = r.data;
-                  }
-                  setPreviews(map);
-                });
-              }
-            } else {
-              setMode("not-found");
-            }
-          })
-          .catch(() => setMode("not-found"));
-      });
+      .catch(() => setMode("category")); // single-segment slug → treat as a topic
   }, [slug]);
 
-  if (mode === "loading") {
+  const linkMap = useMemo(() => {
+    const m: Record<string, { path: string; title: string }> = {};
+    for (const e of catalog ?? []) {
+      const id = e.path.split("/").pop();
+      if (id) m[id] = { path: e.path, title: e.title };
+    }
+    return m;
+  }, [catalog]);
+
+  const categoryEntries = useMemo(
+    () => (catalog ?? []).filter((e) => primaryTopic(e.path) === slug),
+    [catalog, slug]
+  );
+
+  if (mode === "loading" || (mode === "category" && catalog === null)) {
     return (
       <div className="space-y-4 animate-pulse">
         <div className="h-8 bg-surface rounded w-1/3" />
         <div className="h-4 bg-surface rounded w-2/3" />
-        <div className="h-4 bg-surface rounded w-1/2" />
         <div className="h-64 bg-surface rounded" />
       </div>
     );
   }
 
-  if (mode === "not-found") {
-    return (
-      <div className="text-center py-20">
-        <h1 className="text-2xl font-bold mb-2">Page not found</h1>
-        <p className="text-muted">
-          The wiki page &ldquo;{slug}&rdquo; doesn&apos;t exist yet.
-        </p>
-      </div>
-    );
-  }
-
-  if (mode === "category" && category) {
-    return (
-      <div className="space-y-6">
+  // Category view (a topic page)
+  if (mode === "category") {
+    if (categoryEntries.length === 0) {
+      return (
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {category.title}
-          </h1>
-          <p className="text-muted mt-1">
-            {category.children?.length ?? 0} pages in this category
-          </p>
-        </div>
-
-        {category.children && category.children.length > 0 ? (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {category.children.map((page) => {
-              const preview = previews[page.path];
-              return (
-                <Link
-                  key={page.path}
-                  href={page.path}
-                  className="group rounded-xl border border-border bg-surface p-4 transition-all hover:border-accent/30 hover:shadow-sm"
-                >
-                  <h3 className="font-medium text-foreground group-hover:text-accent transition-colors">
-                    {preview?.title ?? page.title}
-                  </h3>
-                  {preview?.description && (
-                    <p className="text-sm text-muted mt-1 line-clamp-2">
-                      {preview.description}
-                    </p>
-                  )}
-                  {preview?.tags && preview.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {preview.tags.slice(0, 4).map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-accent-light text-accent"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </Link>
-              );
-            })}
+          <BackToWiki />
+          <div className="text-center py-20">
+            <h1 className="text-2xl font-bold mb-2">Nothing here</h1>
+            <p className="text-muted">No entries under &ldquo;{slug}&rdquo;.</p>
           </div>
-        ) : (
-          <p className="text-sm text-muted">
-            No pages in this category yet.
-          </p>
-        )}
-
-        <div className="rounded-xl border border-border bg-surface p-4 flex items-center justify-between">
-          <span className="text-sm text-muted">
-            Curated growth entries — grounded in real numbers and sources
-          </span>
-          <Link
-            href="/developer"
-            className="text-xs font-medium text-accent hover:underline"
-          >
-            Use via API / skill
-          </Link>
+        </div>
+      );
+    }
+    return (
+      <div>
+        <BackToWiki />
+        <div className="mb-6">
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold tracking-tight">{topicLabel(slug)}</h1>
+            <span className="text-xs text-muted font-mono bg-surface border border-border rounded px-1.5 py-0.5">
+              {categoryEntries.length}
+            </span>
+          </div>
+          <p className="text-muted mt-1">{categoryEntries.length} entries in this topic</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[...categoryEntries]
+            .sort((a, b) => a.title.localeCompare(b.title))
+            .map((e) => (
+              <EntryCard key={e.path} entry={e} />
+            ))}
         </div>
       </div>
     );
   }
 
-  // Page view
-  if (!data) return null;
+  if (mode === "not-found" || !data) {
+    return (
+      <div>
+        <BackToWiki />
+        <div className="text-center py-20">
+          <h1 className="text-2xl font-bold mb-2">Page not found</h1>
+          <p className="text-muted">The entry &ldquo;{slug}&rdquo; doesn&apos;t exist.</p>
+        </div>
+      </div>
+    );
+  }
 
+  // Entry view
   return (
     <div>
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">
-            {data.title}
-          </h1>
-          {data.description && (
-            <p className="text-muted text-lg">{data.description}</p>
-          )}
-          {data.tags && data.tags.length > 0 && (
-            <div className="flex gap-2 mt-3">
-              {data.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-xs font-mono px-2 py-0.5 rounded-full bg-accent-light text-accent"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
+      <BackToWiki />
+      <div className="mb-8">
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-3xl font-bold tracking-tight">{data.title}</h1>
+          <div className="mt-1.5">
+            <ConfidenceBadge confidence={data.confidence} />
+          </div>
         </div>
+        {data.description && <p className="text-muted text-lg mt-2">{data.description}</p>}
+        {data.source && <p className="text-xs text-muted/80 mt-2 font-mono">{data.source}</p>}
+        {data.tags && data.tags.length > 0 && (
+          <div className="flex gap-2 mt-3 flex-wrap">
+            {data.tags.map((tag) => (
+              <span
+                key={tag}
+                className="text-xs font-mono px-2 py-0.5 rounded-full bg-accent-light text-accent"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
       <MarkdownRenderer content={resolveWikiLinks(data.content, linkMap)} />
     </div>
