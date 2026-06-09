@@ -60,37 +60,14 @@ export default function Home() {
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Try it yourself</h2>
         <div className="space-y-3">
-          <Step
-            number={1}
-            title="Read how top apps reduce churn"
-            href="/wiki/retention/churn-prevention"
-          >
-            Open a wiki page and see how AppHub breaks down a topic — real numbers,
-            frameworks, and actionable advice. No fluff.
+          <Step number={1} title="Read an article" href="/wiki">
+            Browse the knowledge base — each page is a structured breakdown with real data, frameworks, and actionable advice.
           </Step>
-          <Step
-            number={2}
-            title='Ask "How should I price my subscription app?"'
-            href="/ask"
-          >
-            The AI searches the knowledge base, does deep research, then writes a
-            comprehensive article. Takes a minute — the result is published for everyone.
+          <Step number={2} title="Ask a question" href="/ask">
+            The AI searches the knowledge base and answers from the curated entries — grounded in real numbers and sources.
           </Step>
-          <Step
-            number={3}
-            title="Submit a YouTube video or article"
-            href="/admin/resources"
-          >
-            Paste a URL and the AI extracts the content, validates relevance, and
-            integrates the insights into the wiki. The knowledge base grows with every submission.
-          </Step>
-          <Step
-            number={4}
-            title="Install the Claude Code skill"
-            href="/developer"
-          >
-            One prompt and your AI assistant pulls from AppHub whenever you ask about
-            app growth. Works in any Claude Code session.
+          <Step number={3} title="Connect your tools" href="/developer">
+            Install the Claude Code skill or use the API so your AI assistant pulls from AppHub automatically when you hit a growth problem.
           </Step>
         </div>
       </section>

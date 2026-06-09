@@ -131,6 +131,12 @@ export async function POST(req: NextRequest) {
       system: SYSTEM_PROMPTS.resourcePlanning,
     });
     plan = JSON.parse(extractJson(res.result));
+    if (plan.action === "reject") {
+      return NextResponse.json(
+        { detail: `Resource rejected: ${plan.reason}` },
+        { status: 422 }
+      );
+    }
   } catch (err) {
     console.error("[resources] Planning error:", (err as Error).message);
     return NextResponse.json(

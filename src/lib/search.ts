@@ -8,6 +8,9 @@ export interface SearchDoc {
   description: string;
   content: string;
   tags: string;
+  topics: string;
+  claim: string;
+  numbers: string;
   type: "wiki" | "article";
   path: string;
 }
@@ -39,12 +42,22 @@ export async function buildSearchIndex(): Promise<SearchDoc[]> {
     const path =
       file.type === "wiki" ? `/wiki/${slug}` : `/articles/${slug}`;
 
+    const fm = parsed.frontmatter as Record<string, unknown>;
+    const topics = Array.isArray(fm.topics) ? (fm.topics as string[]) : [];
+    const numbers = Array.isArray(fm.numbers) ? (fm.numbers as string[]) : [];
+    const claim = typeof fm.claim === "string" ? fm.claim : "";
+
     docs.push({
       id: file.key,
       title: parsed.title,
       description: parsed.description || "",
-      content: parsed.content.slice(0, 1000), // Index first 1000 chars
+      // Entries are short; index the full body. (Guides are longer but still
+      // small enough that full-text indexing is cheap and worth the recall.)
+      content: parsed.content,
       tags: (parsed.tags || []).join(" "),
+      topics: topics.join(" "),
+      claim,
+      numbers: numbers.join(" "),
       type: file.type,
       path,
     });
@@ -60,12 +73,34 @@ export async function getSearchIndex(): Promise<SearchDoc[]> {
   return buildSearchIndex();
 }
 
+// Conservative English stemmer: lowercases and strips the most common inflections
+// (plurals, -ing, -ed) so "activation"/"activate", "cancellations"/"cancel",
+// "convert"/"converting" collapse to a shared stem. Applied at both index and
+// query time by MiniSearch. Kept deliberately light to avoid over-stemming —
+// domain synonyms are handled separately in synonyms.ts / the search route.
+export function stemTerm(term: string): string {
+  let t = term.toLowerCase().replace(/[^a-z0-9+]/g, "");
+  if (t.length <= 4) return t;
+  if (t.endsWith("ization")) return t.slice(0, -7) + "ize";
+  if (t.endsWith("ations")) return t.slice(0, -6) + "ate";
+  if (t.endsWith("ation")) return t.slice(0, -5) + "ate";
+  if (t.endsWith("ing") && t.length > 6) return t.slice(0, -3);
+  if (t.endsWith("ed") && t.length > 5) return t.slice(0, -2);
+  if (t.endsWith("es") && t.length > 5) return t.slice(0, -2);
+  if (t.endsWith("s") && !t.endsWith("ss") && t.length > 4) return t.slice(0, -1);
+  return t;
+}
+
 export function createMiniSearch(docs: SearchDoc[]): MiniSearch<SearchDoc> {
   const ms = new MiniSearch<SearchDoc>({
-    fields: ["title", "description", "content", "tags"],
+    fields: ["title", "claim", "numbers", "topics", "description", "content", "tags"],
     storeFields: ["title", "description", "type", "path"],
+    processTerm: (term) => {
+      const stemmed = stemTerm(term);
+      return stemmed.length >= 2 ? stemmed : null;
+    },
     searchOptions: {
-      boost: { title: 3, tags: 2, description: 1.5 },
+      boost: { title: 3, claim: 2.5, topics: 2, tags: 2, numbers: 1.8, description: 1.5 },
       fuzzy: 0.2,
       prefix: true,
     },

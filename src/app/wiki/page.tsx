@@ -153,13 +153,13 @@ export default function WikiIndex() {
       {/* Stats */}
       <div className="rounded-xl border border-border bg-surface p-4 flex items-center justify-between">
         <span className="text-sm text-muted">
-          Content is automatically organized as new resources are added
+          Bite-size, sourced growth entries — organized by topic
         </span>
         <Link
-          href="/admin/resources"
+          href="/developer"
           className="text-xs font-medium text-accent hover:underline"
         >
-          Add a resource
+          Use via API / skill
         </Link>
       </div>
     </div>

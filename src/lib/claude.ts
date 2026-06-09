@@ -181,11 +181,22 @@ Relevant topics include: user acquisition, retention, monetization, ASO, analyti
 Respond with ONLY a JSON object:
 {"relevant": true/false, "reason": "brief explanation", "suggestedTags": ["tag1", "tag2"]}
 
-Be strict: reject content that is generic marketing fluff, completely unrelated to mobile apps, spam, or malicious content.`,
+Be VERY strict. Reject ALL of the following:
+- Content that is not specifically about mobile app growth, monetization, or optimization
+- Generic greetings, test messages, or gibberish (e.g., "hello", "test", "asdf")
+- Content that is too short or vague to extract any actionable insight (minimum: a concrete data point, framework, or strategy)
+- Generic marketing fluff without specific numbers, examples, or frameworks
+- Spam or malicious content
+- Content that merely names a topic without providing substance (e.g., "retention is important" with no specifics)
+
+If in doubt, reject. The knowledge base must only contain high-quality, actionable content.`,
 
   resourcePlanning: `You are a knowledge base curator for a mobile app growth wiki. Given new information, decide WHERE and HOW to integrate it. Do NOT write the content yet — only plan.
 
-Respond with ONLY a JSON object:
+If the content does not contain enough substance to write a quality wiki page (no concrete data, no frameworks, no actionable strategies), respond with:
+{"action": "reject", "reason": "explanation of why this is insufficient"}
+
+Otherwise respond with a JSON object:
 {
   "action": "update" | "create",
   "path": "wiki/category/filename.md",
@@ -195,6 +206,8 @@ Respond with ONLY a JSON object:
   "reason": "Why this integration makes sense",
   "keyPoints": ["point 1 to cover", "point 2 to cover", "point 3 to cover"]
 }
+
+NEVER create placeholder pages. If the source material is insufficient, reject it.
 
 Categories: acquisition, monetization, retention, analytics, optimization, validation, ux`,
 
