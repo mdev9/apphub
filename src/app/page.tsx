@@ -1,17 +1,12 @@
 import Link from "next/link";
+import { LiveStats } from "@/components/home/LiveStats";
 
 export default function Home() {
   return (
-    <div className="space-y-16">
+    <div className="space-y-20">
       {/* Hero */}
       <section className="space-y-6 pt-4">
-        <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-muted">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-          </span>
-          269 sourced entries · 31 topics · skill-first
-        </div>
+        <LiveStats />
 
         <h1 className="text-5xl font-bold tracking-tight leading-[1.05]">
           The growth knowledge base
@@ -23,15 +18,13 @@ export default function Home() {
 
         <p className="text-lg text-muted max-w-2xl leading-relaxed">
           Bite-size, evidence-backed entries on onboarding, paywalls, pricing,
-          retention, ads, ASO, and attribution — distilled from App Society
-          calls, RevenueCat benchmarks, and indie-hacker playbooks. Your
-          assistant pulls from it to ground advice in real numbers, not generic
-          tips.
+          retention, ads, ASO, and attribution. Your assistant pulls from it to
+          ground advice in real numbers — not generic tips.
         </p>
 
         <div className="flex flex-wrap gap-3 pt-1">
           <Link
-            href="/wiki"
+            href="/library"
             className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:opacity-90 hover:shadow"
           >
             Browse the Knowledge Base
@@ -40,7 +33,7 @@ export default function Home() {
             </svg>
           </Link>
           <Link
-            href="/developer"
+            href="/connect-your-ai-agent"
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-accent/40"
           >
             Connect your AI agent
@@ -54,29 +47,39 @@ export default function Home() {
       </section>
 
       {/* How it works */}
-      <section className="space-y-6">
+      <section className="space-y-8">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">How it works</h2>
-          <p className="text-muted mt-1">Three steps. Then your assistant just knows.</p>
+          <p className="text-muted mt-1">Connect once. Then your assistant just knows.</p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <HowCard
+
+        <div className="grid gap-5 md:grid-cols-3">
+          <HowStep
             n={1}
             title="Connect once"
-            href="/developer"
+            href="/connect-your-ai-agent"
             body="Install the Claude Code skill or point any agent at the JSON API."
+            icon={
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            }
           />
-          <HowCard
+          <HowStep
             n={2}
             title="It pulls automatically"
-            href="/wiki"
-            body="Hit a growth question and your assistant reads the catalog, searches, and fetches the entries that matter."
+            href="/library"
+            body="Hit a growth question — your assistant reads the catalog, searches, and fetches the entries that matter. No prompting required."
+            icon={
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" />
+            }
           />
-          <HowCard
+          <HowStep
             n={3}
-            title="Get cited, grounded fixes"
-            href="/wiki"
-            body="It compares your real app against what works and gives prioritized changes — each backed by a sourced entry."
+            title="Cited, grounded fixes"
+            href="/library"
+            body="It compares your real app against what works and returns prioritized changes — each backed by a sourced entry."
+            icon={
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            }
           />
         </div>
       </section>
@@ -154,29 +157,40 @@ function Line({
   );
 }
 
-function HowCard({
+function HowStep({
   n,
   title,
   body,
   href,
+  icon,
 }: {
   n: number;
   title: string;
   body: string;
   href: string;
+  icon: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
-      className="group relative overflow-hidden rounded-xl border border-border bg-surface p-5 transition-all hover:border-accent/40 hover:shadow-sm"
+      className="group relative overflow-hidden rounded-2xl border border-border bg-surface p-6 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"
     >
-      <div className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 font-mono text-sm font-bold text-accent">
-        {n}
+      {/* top accent that reveals on hover */}
+      <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-accent to-[#7c9dff] opacity-0 transition-opacity group-hover:opacity-100" />
+      <div className="mb-4 flex items-center justify-between">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent transition-colors group-hover:bg-accent group-hover:text-white">
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            {icon}
+          </svg>
+        </span>
+        <span className="bg-gradient-to-br from-[#2563eb] to-[#9db8ff] bg-clip-text font-mono text-3xl font-bold leading-none text-transparent opacity-40">
+          {n}
+        </span>
       </div>
       <h3 className="font-semibold text-foreground group-hover:text-accent transition-colors">
         {title}
       </h3>
-      <p className="mt-1 text-sm text-muted leading-relaxed">{body}</p>
+      <p className="mt-1.5 text-sm text-muted leading-relaxed">{body}</p>
     </Link>
   );
 }

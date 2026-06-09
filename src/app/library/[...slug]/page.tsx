@@ -39,7 +39,7 @@ function BackLink({ href, label }: { href: string; label: string }) {
 function BackToWiki() {
   return (
     <div className="mb-4">
-      <BackLink href="/wiki" label="Knowledge Base" />
+      <BackLink href="/library" label="Knowledge Base" />
     </div>
   );
 }
@@ -150,8 +150,8 @@ export default function WikiPage() {
   return (
     <div>
       <div className="mb-4 flex items-center gap-4">
-        <BackLink href="/wiki" label="Knowledge Base" />
-        {entryTopic && <BackLink href={`/wiki/${entryTopic}`} label={topicLabel(entryTopic)} />}
+        <BackLink href="/library" label="Knowledge Base" />
+        {entryTopic && <BackLink href={`/library/${entryTopic}`} label={topicLabel(entryTopic)} />}
       </div>
       <div className="mb-8">
         <div className="flex items-start justify-between gap-3">

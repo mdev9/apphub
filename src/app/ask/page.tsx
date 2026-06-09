@@ -75,9 +75,9 @@ export default function AskPage() {
           <div className="text-xs text-muted leading-relaxed">
             Articles generated here are published publicly for everyone to read.
             For personal questions, use the{" "}
-            <a href="/developer" className="text-accent hover:underline">Claude Code skill</a>{" "}
+            <a href="/connect-your-ai-agent" className="text-accent hover:underline">Claude Code skill</a>{" "}
             or the{" "}
-            <a href="/developer" className="text-accent hover:underline">API</a> instead.
+            <a href="/connect-your-ai-agent" className="text-accent hover:underline">API</a> instead.
           </div>
           <button
             type="submit"

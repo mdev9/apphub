@@ -50,7 +50,7 @@ export async function buildNavTree(): Promise<NavTree> {
       categories.get(cat)!.pages.push({
         title,
         slug,
-        path: `/wiki/${cat}/${slug}`,
+        path: `/library/${cat}/${slug}`,
       });
     }
   }
@@ -60,7 +60,7 @@ export async function buildNavTree(): Promise<NavTree> {
     wiki.push({
       title: data.meta?.title || cat.charAt(0).toUpperCase() + cat.slice(1),
       slug: cat,
-      path: `/wiki/${cat}`,
+      path: `/library/${cat}`,
       children: data.pages.sort((a, b) => a.title.localeCompare(b.title)),
       order: data.meta?.order,
     });

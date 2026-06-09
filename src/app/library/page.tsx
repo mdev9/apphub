@@ -145,7 +145,7 @@ export default function WikiIndex() {
         <span className="text-sm text-muted">
           Curated growth entries — grounded in real numbers and sources
         </span>
-        <Link href="/developer" className="text-xs font-medium text-accent hover:underline">
+        <Link href="/connect-your-ai-agent" className="text-xs font-medium text-accent hover:underline">
           Use via API / skill
         </Link>
       </div>

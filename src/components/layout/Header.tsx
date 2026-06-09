@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { SearchDialog } from "@/components/search/SearchDialog";
 
-export function Header() {
+export function Header({ brand = false }: { brand?: boolean }) {
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -21,21 +22,42 @@ export function Header() {
   }, []);
 
   // Build breadcrumbs from pathname
+  const SEGMENT_LABELS: Record<string, string> = {
+    "connect-your-ai-agent": "Connect your AI agent",
+    library: "Knowledge Base",
+    "tiktok-ads": "TikTok Ads",
+    aso: "ASO",
+    cta: "CTA",
+    "og-image": "OG Image",
+  };
   const crumbs = pathname
     .split("/")
     .filter(Boolean)
     .map((segment, i, arr) => ({
-      label: segment
-        .split("-")
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(" "),
+      label:
+        SEGMENT_LABELS[segment] ??
+        segment
+          .split("-")
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(" "),
       href: "/" + arr.slice(0, i + 1).join("/"),
     }));
 
   return (
     <>
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-sm px-8 h-14">
-        {/* Breadcrumbs */}
+        {brand ? (
+          /* Homepage: AppHub logo in place of breadcrumbs */
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent">
+              <span className="font-mono text-sm font-bold text-white">A</span>
+            </div>
+            <span className="text-lg font-semibold tracking-tight text-foreground">
+              AppHub
+            </span>
+          </Link>
+        ) : (
+        /* Breadcrumbs */
         <nav className="flex items-center gap-1.5 text-sm text-muted">
           <a href="/" className="hover:text-foreground transition-colors">
             Home
@@ -58,6 +80,7 @@ export function Header() {
             </span>
           ))}
         </nav>
+        )}
 
         {/* Search trigger */}
         <button

@@ -41,7 +41,7 @@ export async function buildSearchIndex(): Promise<SearchDoc[]> {
       .replace(/^(wiki|articles)\//, "")
       .replace(/\.md$/, "");
     const path =
-      file.type === "wiki" ? `/wiki/${slug}` : `/articles/${slug}`;
+      file.type === "wiki" ? `/library/${slug}` : `/articles/${slug}`;
 
     const fm = parsed.frontmatter as Record<string, unknown>;
     const topics = Array.isArray(fm.topics) ? (fm.topics as string[]) : [];
@@ -75,7 +75,7 @@ export async function buildSearchIndex(): Promise<SearchDoc[]> {
         numbers,
         confidence: typeof fm.confidence === "string" ? fm.confidence : "",
         source: typeof fm.source === "string" ? fm.source : "",
-        path: `/wiki/${slug}`,
+        path: `/library/${slug}`,
         apiPath: `/api/wiki/${slug}`,
       });
     }

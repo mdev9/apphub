@@ -21,7 +21,7 @@ export function ConfidenceBadge({ confidence }: { confidence?: string }) {
         CONFIDENCE_STYLE[confidence] ?? "bg-surface text-muted"
       }`}
     >
-      {confidence} confidence
+      {confidence}
     </span>
   );
 }

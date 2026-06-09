@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { Header } from "@/components/layout/Header";
+import { AppShell } from "@/components/layout/AppShell";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -46,15 +45,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="h-full">
-        <div className="flex h-full">
-          <Sidebar />
-          <div className="flex flex-1 flex-col min-w-0 ml-[var(--sidebar-w)]">
-            <Header />
-            <main className="flex-1 overflow-y-auto">
-              <div className="mx-auto max-w-4xl px-8 py-10">{children}</div>
-            </main>
-          </div>
-        </div>
+        <AppShell>{children}</AppShell>
         <Analytics />
       </body>
     </html>

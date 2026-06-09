@@ -2,8 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { NavTree, NavItem } from "@/lib/nav";
+
+const ICON_KB = (
+  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M12 6.5C10.5 5.5 8.5 5 6.5 5c-1 0-2 .12-2.5.3v12.4c.5-.18 1.5-.3 2.5-.3 2 0 4 .5 5.5 1.5m0-13.4c1.5-1 3.5-1.5 5.5-1.5 1 0 2 .12 2.5.3v12.4c-.5-.18-1.5-.3-2.5-.3-2 0-4 .5-5.5 1.5m0-13.4V19.9" />
+);
+const ICON_AGENT = (
+  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M9.5 3.5l1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1 1-2.5zM17 13l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8z" />
+);
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -26,7 +33,7 @@ export function Sidebar() {
   useEffect(() => {
     if (!pathname) return;
     const parts = pathname.split("/");
-    if (parts[1] === "wiki" && parts[2]) {
+    if (parts[1] === "library" && parts[2]) {
       setExpanded((prev) => new Set(prev).add(parts[2]));
     }
   }, [pathname]);
@@ -59,12 +66,12 @@ export function Sidebar() {
         {/* Quick links. Ask + Articles are hidden for now (routes kept, to be
             re-added once improved). */}
         <div className="mb-6">
-          <NavLink href="/wiki" label="Knowledge Base" icon="≡" active={pathname === "/wiki"} />
-          <NavLink href="/developer" label="AI Agents" icon="✦" active={pathname === "/developer"} />
+          <NavLink href="/library" label="Knowledge Base" icon={ICON_KB} active={pathname === "/library"} />
+          <NavLink href="/connect-your-ai-agent" label="AI Agents" icon={ICON_AGENT} active={pathname === "/connect-your-ai-agent"} />
         </div>
 
         {/* Wiki sections */}
-        <Link href="/wiki" className="block mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted hover:text-foreground transition-colors">
+        <Link href="/library" className="block mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted hover:text-foreground transition-colors">
           Topics
         </Link>
         {nav?.wiki.map((section) => (
@@ -152,7 +159,7 @@ function NavLink({
 }: {
   href: string;
   label: string;
-  icon: string;
+  icon: ReactNode;
   active: boolean;
 }) {
   return (
@@ -164,9 +171,14 @@ function NavLink({
           : "text-muted hover:text-foreground hover:bg-accent-light"
       }`}
     >
-      <span className="w-5 h-5 rounded bg-border flex items-center justify-center text-xs font-mono font-bold">
+      <svg
+        className={`h-[18px] w-[18px] flex-shrink-0 ${active ? "text-accent" : "text-muted"}`}
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
         {icon}
-      </span>
+      </svg>
       {label}
     </Link>
   );

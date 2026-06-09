@@ -215,16 +215,19 @@ function CopyableSection({
   copyText: string;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-accent-light/30">
-        <div>
-          <h2 className="text-sm font-semibold">{title}</h2>
-          <p className="text-xs text-muted mt-0.5">{description}</p>
+    <div className="space-y-2">
+      {description && <p className="text-xs text-muted">{description}</p>}
+      <div className="overflow-hidden rounded-2xl border border-border bg-[#0b1120] shadow-sm dark:bg-[#0a0f1a]">
+        <div className="flex items-center gap-2 border-b border-white/10 px-4 py-2.5">
+          <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+          <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
+          <span className="h-3 w-3 rounded-full bg-[#28c840]" />
+          <span className="ml-3 font-mono text-xs text-slate-400">{title}</span>
+          <div className="ml-auto">
+            <CopyButton text={copyText} />
+          </div>
         </div>
-        <CopyButton text={copyText} />
-      </div>
-      <div className="p-4">
-        <pre className="text-xs font-mono text-foreground bg-background rounded-lg border border-border p-4 overflow-x-auto whitespace-pre-wrap leading-relaxed">
+        <pre className="max-h-[32rem] overflow-auto whitespace-pre-wrap p-5 font-mono text-[12.5px] leading-relaxed text-slate-200">
           {content}
         </pre>
       </div>
