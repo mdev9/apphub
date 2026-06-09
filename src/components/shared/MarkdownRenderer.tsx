@@ -38,12 +38,17 @@ export function MarkdownRenderer({ content, className }: Props) {
               )}
             </h3>
           ),
-          // External links open in new tab
-          a: ({ href, children, ...props }) => (
-            <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
-              {children}
-            </a>
-          ),
+          // Internal links (/wiki/...) navigate in place; external open in new tab
+          a: ({ href, children, ...props }) =>
+            href?.startsWith("/") ? (
+              <a href={href} {...props}>
+                {children}
+              </a>
+            ) : (
+              <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+                {children}
+              </a>
+            ),
           // Style tables nicely
           table: ({ children, ...props }) => (
             <div className="overflow-x-auto">

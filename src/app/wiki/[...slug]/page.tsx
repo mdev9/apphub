@@ -34,10 +34,27 @@ export default function WikiPage() {
 
   // Page state
   const [data, setData] = useState<WikiData | null>(null);
+  // id -> {path,title} map so [[wiki-links]] in entry bodies become real links
+  const [linkMap, setLinkMap] = useState<Record<string, { path: string; title: string }>>({});
 
   // Category state
   const [category, setCategory] = useState<NavItem | null>(null);
   const [previews, setPreviews] = useState<Record<string, PagePreview>>({});
+
+  // Build the [[id]] → entry lookup once from the catalog.
+  useEffect(() => {
+    fetch("/api/catalog")
+      .then((r) => r.json())
+      .then((c: { entries?: { path: string; title: string }[] }) => {
+        const m: Record<string, { path: string; title: string }> = {};
+        for (const e of c.entries ?? []) {
+          const id = e.path.split("/").pop();
+          if (id) m[id] = { path: e.path, title: e.title };
+        }
+        setLinkMap(m);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     setMode("loading");
@@ -204,7 +221,19 @@ export default function WikiPage() {
           )}
         </div>
       </div>
-      <MarkdownRenderer content={data.content} />
+      <MarkdownRenderer content={resolveWikiLinks(data.content, linkMap)} />
     </div>
   );
+}
+
+// Turn `[[entry-id]]` cross-references into real markdown links (using the
+// catalog's id→path+title map). Unknown ids fall back to de-kebabed plain text.
+function resolveWikiLinks(
+  content: string,
+  map: Record<string, { path: string; title: string }>
+): string {
+  return content.replace(/\[\[([a-z0-9-]+)\]\]/g, (_m, id: string) => {
+    const hit = map[id];
+    return hit ? `[${hit.title}](${hit.path})` : id.replace(/-/g, " ");
+  });
 }
