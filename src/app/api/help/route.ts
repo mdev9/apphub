@@ -13,23 +13,15 @@ export async function GET(req: NextRequest) {
     description:
       "A data-driven knowledge base for building and scaling mobile apps. AI-curated resources on acquisition, monetization, retention, and growth.",
     version: "1.0.0",
-    agent_prompt: `You are interacting with AppHub, a mobile app growth knowledge base hosted at ${BASE_URL}. Use the endpoints below to search, browse, and read content. All responses are JSON. Content is markdown. Prefix all paths with ${BASE_URL}.
+    agent_prompt: `You are interacting with AppHub, a read-only growth knowledge base hosted at ${BASE_URL}. It holds bite-size, sourced entries on onboarding, paywalls, pricing, retention, acquisition, creatives, ASO, attribution, and more. Use it to ground growth advice in real numbers instead of generic tips, and cite the entries you used. All responses are JSON; entry content is markdown. Prefix all paths with ${BASE_URL}.
 
-Available actions:
-- GET ${BASE_URL}/api/help — This help document (start here)
-- GET ${BASE_URL}/api/index — Full site index: all wiki pages and articles with metadata
-- GET ${BASE_URL}/api/search?q=<query> — Full-text search across all content
-- GET ${BASE_URL}/api/wiki/nav — Navigation tree (categories and pages)
-- GET ${BASE_URL}/api/wiki/<category>/<slug> — Read a wiki page (returns title, description, content as markdown, tags)
-- GET ${BASE_URL}/api/articles?sort=popular|recent|top-rated — List all articles with popularity scores and AI ratings
-- GET ${BASE_URL}/api/articles/<slug> — Read a single article
+Workflow:
+1. Ingest the catalog first — GET ${BASE_URL}/api/catalog — and reason over the claims to shortlist relevant entries (the corpus is small enough to read whole). Filter with ?topic=<name> when it maps cleanly.
+2. Search for anything else — GET ${BASE_URL}/api/search?q=<query> — synonym-expanded full-text search; returns title, description, a snippet, and path.
+3. Read the entries that matter — GET ${BASE_URL}/api/wiki/<category>/<slug> (the catalog's apiPath). Each has a claim, evidence, an "Apply when" and a "Caveat". Respect the 'confidence' field: 'debated' entries present two sides — surface the trade-off. Weigh 'source' for context.
+4. Compare against the user's actual app and give concrete, prioritized fixes, each citing the entry (title + path) it came from.
 
-Tips:
-- Start with /api/index to understand what content is available
-- Use /api/search?q= for specific topics (supports fuzzy matching)
-- Wiki pages are curated reference material; articles are AI-generated deep-dives on specific questions
-- Content quality is indicated by aiRating (1-10 scale, set by the AI curator)
-- Articles are ranked by a blend of time-weighted popularity and AI quality rating`,
+Other endpoints: GET ${BASE_URL}/api/wiki/nav (topic tree). If the base has nothing on a topic, say so and answer from your own knowledge.`,
     endpoints: {
       help: {
         method: "GET",

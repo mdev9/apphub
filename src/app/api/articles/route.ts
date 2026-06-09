@@ -8,6 +8,7 @@ import {
 } from "@/lib/popularity";
 import { ask, isAiEnabled, extractJson, SYSTEM_PROMPTS } from "@/lib/claude";
 import slugify from "slugify";
+import { writesBlocked } from "@/lib/writes";
 import { buildSearchIndex } from "@/lib/search";
 import { buildNavTree } from "@/lib/nav";
 import { logAction } from "@/lib/history";
@@ -42,6 +43,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const blocked = writesBlocked();
+  if (blocked) return blocked;
   const body = await req.json();
   const { content, question } = body as { content: string; question: string };
 

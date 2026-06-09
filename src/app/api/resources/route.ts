@@ -7,6 +7,7 @@ import { buildNavTree } from "@/lib/nav";
 import { logAction, captureBeforeState } from "@/lib/history";
 import { extractUrlContent } from "@/lib/url-extract";
 import { enqueue, isProxyAvailable } from "@/lib/queue";
+import { writesBlocked } from "@/lib/writes";
 
 export const maxDuration = 300;
 
@@ -19,6 +20,8 @@ function getClientIp(req: NextRequest): string {
 }
 
 export async function POST(req: NextRequest) {
+  const blocked = writesBlocked();
+  if (blocked) return blocked;
   if (!isAiEnabled()) {
     return NextResponse.json(
       { detail: "Resource processing requires AI (local mode only)" },

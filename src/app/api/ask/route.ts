@@ -3,6 +3,7 @@ import { ask, isAiEnabled, SYSTEM_PROMPTS, proxyHeaders as getProxyHeaders } fro
 import { isProxyAvailable } from "@/lib/queue";
 import { getSearchIndex, createMiniSearch } from "@/lib/search";
 import { getObject } from "@/lib/r2";
+import { writesBlocked } from "@/lib/writes";
 
 export const maxDuration = 300;
 
@@ -59,6 +60,8 @@ Compile ALL your research findings as detailed notes. Include specific numbers, 
 }
 
 export async function POST(req: NextRequest) {
+  const blocked = writesBlocked();
+  if (blocked) return blocked;
   if (!isAiEnabled()) {
     return NextResponse.json(
       { detail: "AI features are not available in production" },

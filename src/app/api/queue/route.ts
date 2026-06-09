@@ -5,6 +5,7 @@ import { putObject, getObject } from "@/lib/r2";
 import { buildSearchIndex } from "@/lib/search";
 import { buildNavTree } from "@/lib/nav";
 import { logAction, captureBeforeState } from "@/lib/history";
+import { writesBlocked } from "@/lib/writes";
 
 export const maxDuration = 300;
 
@@ -21,6 +22,8 @@ export async function GET() {
 
 // POST: process pending items
 export async function POST() {
+  const blocked = writesBlocked();
+  if (blocked) return blocked;
   if (!(await isProxyAvailable())) {
     return NextResponse.json(
       { detail: "Proxy still unavailable" },
