@@ -22,17 +22,25 @@ interface CatalogEntry extends EntrySummary {
 
 type ViewMode = "loading" | "page" | "category" | "not-found";
 
-function BackToWiki() {
+function BackLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
-      href="/wiki"
-      className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-accent transition-colors mb-4"
+      href={href}
+      className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-accent transition-colors"
     >
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
       </svg>
-      Knowledge Base
+      {label}
     </Link>
+  );
+}
+
+function BackToWiki() {
+  return (
+    <div className="mb-4">
+      <BackLink href="/wiki" label="Knowledge Base" />
+    </div>
   );
 }
 
@@ -138,9 +146,13 @@ export default function WikiPage() {
   }
 
   // Entry view
+  const entryTopic = slug.split("/")[0];
   return (
     <div>
-      <BackToWiki />
+      <div className="mb-4 flex items-center gap-4">
+        <BackLink href="/wiki" label="Knowledge Base" />
+        {entryTopic && <BackLink href={`/wiki/${entryTopic}`} label={topicLabel(entryTopic)} />}
+      </div>
       <div className="mb-8">
         <div className="flex items-start justify-between gap-3">
           <h1 className="text-3xl font-bold tracking-tight">{data.title}</h1>

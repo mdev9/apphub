@@ -26,7 +26,7 @@ export default function Home() {
             href="/developer"
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-accent/40"
           >
-            Connect the skill
+            Connect your AI agent
           </Link>
         </div>
       </section>

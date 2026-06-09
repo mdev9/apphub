@@ -60,7 +60,7 @@ export function Sidebar() {
             re-added once improved). */}
         <div className="mb-6">
           <NavLink href="/wiki" label="Knowledge Base" icon="≡" active={pathname === "/wiki"} />
-          <NavLink href="/developer" label="API & Skill" icon="/" active={pathname === "/developer"} />
+          <NavLink href="/developer" label="AI Agents" icon="✦" active={pathname === "/developer"} />
         </div>
 
         {/* Wiki sections */}

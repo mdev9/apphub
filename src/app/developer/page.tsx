@@ -88,33 +88,37 @@ If the base has nothing on the topic, say so and answer from your own knowledge.
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">API</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Connect your AI agent</h1>
         <p className="text-muted mt-1">
-          Use these endpoints to integrate AppHub with AI agents, scripts, or other tools
+          Install AppHub as a skill, or call the JSON API directly, so your assistant
+          grounds growth advice in the knowledge base instead of generic tips.
         </p>
       </div>
 
-      {/* Claude Code Skill */}
-      <CopyableSection
-        title="Claude Code Skill"
-        description="Paste this into Claude Code to install AppHub as a skill"
-        content={installPrompt}
-        copyText={installPrompt}
-      />
+      {/* Skill section */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold tracking-tight">Skill</h2>
+        <CopyableSection
+          title="Claude Code Skill"
+          description="Paste this into Claude Code to install AppHub as a skill"
+          content={installPrompt}
+          copyText={installPrompt}
+        />
+      </section>
 
-      {/* Agent prompt */}
-      <CopyableSection
-        title="Agent System Prompt"
-        description="Give this to an AI agent so it can autonomously browse and use AppHub"
-        content={agentPrompt || "Loading..."}
-        copyText={agentPrompt}
-      />
-
-      {/* Endpoints */}
-      <div>
-        <h2 className="text-lg font-semibold mb-3">Endpoints</h2>
+      {/* API section */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold tracking-tight">API</h2>
+        <CopyableSection
+          title="Agent System Prompt"
+          description="Give this to any AI agent so it can autonomously browse and use AppHub"
+          content={agentPrompt || "Loading..."}
+          copyText={agentPrompt}
+        />
+        <div>
+          <h3 className="text-sm font-semibold mb-3 text-muted">Endpoints</h3>
         <div className="space-y-2">
           {ENDPOINTS.map((ep) => (
             <div
@@ -154,9 +158,9 @@ If the base has nothing on the topic, say so and answer from your own knowledge.
               )}
             </div>
           ))}
+          </div>
         </div>
-      </div>
-
+      </section>
     </div>
   );
 }

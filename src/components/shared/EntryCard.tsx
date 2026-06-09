@@ -6,15 +6,22 @@ export const CONFIDENCE_STYLE: Record<string, string> = {
   debated: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400",
 };
 
+const CONFIDENCE_TITLE: Record<string, string> = {
+  high: "High confidence — multi-call consensus or backed by data",
+  medium: "Medium confidence — a single operator's tactic, not yet broadly confirmed",
+  debated: "Debated — the sources disagree; both sides are in the entry's caveat",
+};
+
 export function ConfidenceBadge({ confidence }: { confidence?: string }) {
   if (!confidence) return null;
   return (
     <span
-      className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+      title={CONFIDENCE_TITLE[confidence] ?? `${confidence} confidence`}
+      className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full flex-shrink-0 cursor-help ${
         CONFIDENCE_STYLE[confidence] ?? "bg-surface text-muted"
       }`}
     >
-      {confidence}
+      {confidence} confidence
     </span>
   );
 }
