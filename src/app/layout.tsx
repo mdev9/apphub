@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://apphub.marijn.fr"),
   title: "AppHub — Mobile App Growth Knowledge Base",
   description:
     "Data-driven knowledge base for building and scaling mobile apps. AI-curated resources on acquisition, monetization, retention, and growth.",
