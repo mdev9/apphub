@@ -25,5 +25,7 @@ export async function GET(
     topics: Array.isArray(fm.topics) ? (fm.topics as string[]) : [],
     confidence: typeof fm.confidence === "string" ? fm.confidence : "",
     source: typeof fm.source === "string" ? fm.source : "",
+    createdAt: typeof fm.createdAt === "string" ? fm.createdAt : "",
+    updatedAt: typeof fm.updatedAt === "string" ? fm.updatedAt : "",
   });
 }

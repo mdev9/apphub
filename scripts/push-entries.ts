@@ -21,9 +21,23 @@ import * as path from "node:path";
 
 async function main() {
   if (!process.env.R2_ENDPOINT) throw new Error("R2_ENDPOINT not set — refusing to run.");
-  const { putObject } = await import("../src/lib/r2");
+  const { putObject, getObject } = await import("../src/lib/r2");
   const { buildSearchIndex } = await import("../src/lib/search");
   const { buildNavTree } = await import("../src/lib/nav");
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Canonically set createdAt/updatedAt in the frontmatter block.
+  function stampDates(body: string, created: string, updated: string): string {
+    const m = body.match(/^(---\n)([\s\S]*?)(\n---\n)/);
+    if (!m) return body;
+    let fm = m[2]
+      .replace(/\n?^createdAt:.*$/m, "")
+      .replace(/\n?^updatedAt:.*$/m, "")
+      .replace(/\s*$/, "");
+    fm += `\ncreatedAt: "${created}"\nupdatedAt: "${updated}"`;
+    return m[1] + fm + m[3] + body.slice(m[0].length);
+  }
 
   const ROOT = process.cwd();
   const INCOMING = path.join(ROOT, "data", "_incoming");
@@ -51,7 +65,17 @@ async function main() {
   for (const full of files) {
     const rel = path.relative(INCOMING, full).split(path.sep).join("/"); // <topic>/<id>.md
     const key = `wiki/${rel}`;
-    const body = fs.readFileSync(full, "utf-8");
+    let body = fs.readFileSync(full, "utf-8");
+
+    // Preserve createdAt for existing entries; always bump updatedAt to today.
+    const existing = await getObject(key);
+    let created = today;
+    if (existing) {
+      const m = existing.match(/^createdAt:\s*"?([0-9-]+)"?/m);
+      if (m) created = m[1];
+    }
+    body = stampDates(body, created, today);
+
     await putObject(key, body, "text/markdown");
 
     const mirror = path.join(ROOT, "data", "wiki", rel);

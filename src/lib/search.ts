@@ -75,6 +75,8 @@ export async function buildSearchIndex(): Promise<SearchDoc[]> {
         numbers,
         confidence: typeof fm.confidence === "string" ? fm.confidence : "",
         source: typeof fm.source === "string" ? fm.source : "",
+        createdAt: typeof fm.createdAt === "string" ? fm.createdAt : "",
+        updatedAt: typeof fm.updatedAt === "string" ? fm.updatedAt : "",
         path: `/library/${slug}`,
         apiPath: `/api/wiki/${slug}`,
       });
@@ -95,6 +97,8 @@ export interface CatalogEntry {
   numbers: string[];
   confidence: string;
   source: string;
+  createdAt: string;
+  updatedAt: string;
   path: string;
   apiPath: string;
 }

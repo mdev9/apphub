@@ -14,6 +14,8 @@ interface WikiData {
   tags?: string[];
   confidence?: string;
   source?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface CatalogEntry extends EntrySummary {
@@ -162,6 +164,12 @@ export default function WikiPage() {
         </div>
         {data.description && <p className="text-muted text-lg mt-2">{data.description}</p>}
         {data.source && <p className="text-xs text-muted/80 mt-2 font-mono">{data.source}</p>}
+        {data.createdAt && (
+          <p className="text-[11px] text-muted/60 mt-1">
+            Added {data.createdAt}
+            {data.updatedAt && data.updatedAt !== data.createdAt ? ` · Updated ${data.updatedAt}` : ""}
+          </p>
+        )}
         {data.tags && data.tags.length > 0 && (
           <div className="flex gap-2 mt-3 flex-wrap">
             {data.tags.map((tag) => (
